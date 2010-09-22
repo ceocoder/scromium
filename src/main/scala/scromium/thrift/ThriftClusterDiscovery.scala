@@ -1,5 +1,7 @@
 package scromium.thrift
 
+import org.apache.thrift.transport.TFramedTransport
+import org.apache.thrift.transport.TTransport
 import org.apache.thrift.protocol.TBinaryProtocol
 import org.apache.thrift.transport.{TSocket, TTransportException}
 import org.apache.cassandra.thrift
@@ -8,8 +10,10 @@ import scala.collection.JavaConversions._
 
 class ThriftClusterDiscovery {
   @throws(classOf[TTransportException])
-  def hosts(seedHost : String, seedPort : Int) : List[String] = {
-    val socket = new TSocket(seedHost, seedPort)
+  def hosts(seedHost : String, seedPort : Int, framed: Boolean) : List[String] = {
+	
+	val socket = getTransport(seedHost, seedPort, framed)
+	
     socket.open
     val client = new thrift.Cassandra.Client(new TBinaryProtocol(socket))
     val keyspaces = client.describe_keyspaces.toList.filter { x => x != "system" }
@@ -21,5 +25,12 @@ class ThriftClusterDiscovery {
     socket.close
     val seq = for (range <- ranges; endpoint <- range.endpoints) yield(endpoint)
     seq.toList.distinct
+  }
+  
+  private def getTransport(seedHost: String, seedPort: Int, framed: Boolean): TTransport = {	
+	if(framed)
+	   new TFramedTransport(new TSocket(seedHost, seedPort))
+	else 
+	  new TSocket(seedHost, seedPort)  
   }
 }

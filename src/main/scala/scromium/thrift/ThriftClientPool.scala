@@ -16,13 +16,13 @@ class ThriftClientPool(config : Map[String,Any],
   val maxIdle = config("maxIdle").asInstanceOf[Int]
   val initCapacity = config("initCapacity").asInstanceOf[Int]
   val framed = config("framed").asInstanceOf[Boolean]
-  val hosts = clusterDiscovery.hosts(seedHost,seedPort)
+  val hosts = clusterDiscovery.hosts(seedHost,seedPort, framed)
   val clientFactory = new ThriftClientFactory(hosts, seedPort, socketFactory, framed)
   
   val hostRefreshTask = new TimerTask {
     override def run {
       try {
-        val newHosts = clusterDiscovery.hosts(seedHost, seedPort)
+        val newHosts = clusterDiscovery.hosts(seedHost, seedPort, framed)
         clientFactory.synchronized {
           clientFactory.hosts = newHosts
         }
