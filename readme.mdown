@@ -152,7 +152,7 @@ most specific Serializer or Deserializer available at the call site.
 
 You can define your own Serializers.
 
-      implicit object FuckSerializer extends Serializer[Fuck] {
+      implicit object FuckSerializer extends Serializer[Fuck] with Deserializer[Fuck] {
         def serialize(fuck : Fuck) = Array[Byte](0)
 
         def deserialize(ary : Array[Byte]) = new Fuck
