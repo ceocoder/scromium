@@ -1,7 +1,8 @@
 import sbt._
 import sbt.StringUtilities._
+import de.element34.sbteclipsify._
 
-class ScromiumProject(info : ProjectInfo) extends DefaultProject(info) with BasicScalaIntegrationTesting with AssemblyAction {
+class ScromiumProject(info : ProjectInfo) extends DefaultProject(info) with BasicScalaIntegrationTesting with AssemblyAction with Eclipsify {
   override def compileOptions = Deprecation :: Unchecked :: super.compileOptions.toList
   
   override def managedStyle = ManagedStyle.Maven

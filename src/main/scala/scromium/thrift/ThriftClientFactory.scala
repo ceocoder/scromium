@@ -8,7 +8,7 @@ import scromium.util.Log
 
 class ThriftClientFactory(var hosts : List[String], 
     val port : Int, 
-    socketFactory : ThriftSocketFactory) extends PoolableObjectFactory with Log {
+    socketFactory : ThriftSocketFactory, framed : Boolean) extends PoolableObjectFactory with Log {
   if (hosts.length == 0) {
     throw new IllegalArgumentException("hosts cannot be empty")
   }
@@ -52,7 +52,7 @@ class ThriftClientFactory(var hosts : List[String],
       case Nil => throw new Exception("No cassandra hosts alive currently.")
       case host :: tail =>
         try {
-          val socket = socketFactory.make(host, port)
+          val socket = socketFactory.make(host, port, framed)
           if (!socket.isOpen) socket.open
           socket
         } catch {
