@@ -63,7 +63,7 @@ deliver Scromium's configuration.
         "seedPort" -> 9160,
         "maxIdle" -> 10,
         "initCapacity" -> 10,
-	"framed" -> true,
+        "framed" -> true,
         "clientProvider" -> "scromium.thrift.ThriftClientProvider")
     val cassandra = Cassandra.start(conf)
 
