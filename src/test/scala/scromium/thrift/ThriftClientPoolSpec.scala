@@ -14,10 +14,10 @@ class ThriftClientPoolSpec extends Specification with Mockito {
       val clusterDiscovery = mock[ThriftClusterDiscovery]
       
       clusterDiscovery.hosts("10.10.10.10", 9160) returns List("127.0.0.1")
-      socketFactory.make("127.0.0.1", 9160) returns socket
+      socketFactory.make("127.0.0.1", 9160, false) returns socket
       socket.isOpen returns true
       
-      val connPool = new ThriftClientPool(Map("seedHost" -> "10.10.10.10", "seedPort" -> 9160, "maxIdle" -> 1, "initCapacity" -> 1), socketFactory, clusterDiscovery)
+      val connPool = new ThriftClientPool(Map("seedHost" -> "10.10.10.10", "seedPort" -> 9160, "maxIdle" -> 1, "initCapacity" -> 1, "framed" -> true), socketFactory, clusterDiscovery)
       val connection = connPool.borrow
       
       connection must notBeNull
@@ -30,8 +30,8 @@ class ThriftClientPoolSpec extends Specification with Mockito {
       val clusterDiscovery = mock[ThriftClusterDiscovery]
       
       clusterDiscovery.hosts("10.10.10.10", 9160) returns List("127.0.0.1", "192.168.0.1")
-      socketFactory.make("127.0.0.1", 9160) throws new TTransportException("")
-      socketFactory.make("192.168.0.1", 9160) returns socket
+      socketFactory.make("127.0.0.1", 9160, false) throws new TTransportException("")
+      socketFactory.make("192.168.0.1", 9160, false) returns socket
       socket.isOpen returns true
       
       val connPool = new ThriftClientPool(Map("seedHost" -> "10.10.10.10", "seedPort" -> 9160, "maxIdle" -> 1, "initCapacity" -> 1), socketFactory, clusterDiscovery)
@@ -46,9 +46,9 @@ class ThriftClientPoolSpec extends Specification with Mockito {
       val clusterDiscovery = mock[ThriftClusterDiscovery]
       
       clusterDiscovery.hosts("10.10.10.10", 9160) returns List("127.0.0.1")
-      socketFactory.make("127.0.0.1", 9160) throws new TTransportException("")
+      socketFactory.make("127.0.0.1", 9160, false) throws new TTransportException("")
       
-      val connPool = new ThriftClientPool(Map("seedHost" -> "10.10.10.10", "seedPort" -> 9160, "maxIdle" -> 1, "initCapacity" -> 1), socketFactory, clusterDiscovery)
+      val connPool = new ThriftClientPool(Map("seedHost" -> "10.10.10.10", "seedPort" -> 9160, "maxIdle" -> 1, "initCapacity" -> 1, "framed" -> false), socketFactory, clusterDiscovery)
       connPool must notBeNull
       val a = () => { connPool.borrow } 
       a() must throwA[Exception]
@@ -61,16 +61,16 @@ class ThriftClientPoolSpec extends Specification with Mockito {
       
       clusterDiscovery.hosts("10.10.10.10", 9160) returns List("127.0.0.1", "192.168.0.1")
       socket.isOpen returns true
-      socketFactory.make(anyString, anyInt) returns socket
+      socketFactory.make(anyString, anyInt, false) returns socket
       
-      val connPool = new ThriftClientPool(Map("seedHost" -> "10.10.10.10", "seedPort" -> 9160, "maxIdle" -> 10, "initCapacity" -> 10), socketFactory, clusterDiscovery)
+      val connPool = new ThriftClientPool(Map("seedHost" -> "10.10.10.10", "seedPort" -> 9160, "maxIdle" -> 10, "initCapacity" -> 10, "framed" -> false), socketFactory, clusterDiscovery)
       connPool.borrow
       connPool.borrow
       connPool.borrow
       
-      there was one(socketFactory).make("127.0.0.1", 9160) then
-      one(socketFactory).make("192.168.0.1", 9160) then
-      one(socketFactory).make("127.0.0.1", 9160)
+      there was one(socketFactory).make("127.0.0.1", 9160, false) then
+      one(socketFactory).make("192.168.0.1", 9160, false) then
+      one(socketFactory).make("127.0.0.1", 9160, false)
       
     }
   }
