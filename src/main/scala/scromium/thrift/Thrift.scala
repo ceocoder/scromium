@@ -6,8 +6,8 @@ import scala.collection.JavaConversions._
 import scromium.meta._
 
 object Thrift {
-  def column(c : scromium.Column) : Column = {
-    val column = new Column(c.name, c.value, new Clock(c.timestamp))
+  def column(c : scromium.Column) : Column = {	  
+    val column = new Column(c.name, c.value, c.timestamp)
     for (ttl <- c.ttl) column.ttl = ttl
     column
   }
@@ -37,7 +37,7 @@ object Thrift {
       Some(c.ttl)
     else
       None
-    scromium.Column(c.name, c.value, c.clock.timestamp, ttl)
+    scromium.Column(c.name, c.value, c.timestamp, ttl)
   }
   
   def unpackSuperColumn(corsc : ColumnOrSuperColumn) : scromium.SuperColumn = {
@@ -89,7 +89,7 @@ object Thrift {
   }
   
   def deletion(d : Delete) : Deletion = {
-    val deletion = new Deletion(new Clock(d.clock.timestamp))
+    val deletion = new Deletion(d.clock.timestamp)
     d match {
       case Delete(keys, cf, Some(List(column)), Some(subColumns), _, _) =>
         deletion.super_column = column
@@ -141,10 +141,8 @@ object Thrift {
   def cfDef(cf : ColumnFamilyDef) : CfDef = {
     val cfdef = new CfDef(cf.keyspace,cf.name)
     cfdef.column_type = cf.columnType
-    cfdef.clock_type = cf.clockType
     cfdef.comparator_type = cf.comparatorType
     cfdef.subcomparator_type = cf.subComparatorType
-    cfdef.reconciler = cf.reconciler
     cfdef.comment = cf.comment
     cfdef.row_cache_size = cf.rowCacheSize
     cfdef.preload_row_cache = cf.preloadRowCache
