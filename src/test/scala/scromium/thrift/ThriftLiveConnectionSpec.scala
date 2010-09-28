@@ -79,6 +79,7 @@ class ThriftLiveConnectionSpec extends Specification with Mockito with TestHelpe
         "seedHost" -> "localhost",
         "seedPort" -> 9160,
         "maxIdle" -> 10,
+        "framed" -> true,
         "initCapacity" -> 10
       ))
     } catch {

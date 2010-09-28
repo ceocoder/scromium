@@ -69,6 +69,7 @@ object Cassandra extends Log {
     "seedPort" -> 9160, 
     "maxIdle" -> 10, 
     "initCapacity" -> 10,
+    "framed" -> true,
     "clientProvider" -> "scromium.thrift.ThriftClientProvider")
     
   private def createClientProvider(config : Map[String, Any]) : ClientProvider = {

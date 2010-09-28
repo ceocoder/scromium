@@ -15,9 +15,8 @@ class ThriftClusterDiscovery {
 	val socket = getTransport(seedHost, seedPort, framed)
 	
     socket.open
-    val client = new thrift.Cassandra.Client(new TBinaryProtocol(socket))
-    val kkeyspaces = client.describe_keyspaces //.toList.filter { x => x.getName != "system" }.flatMap(x => List(x.getName))    
-    val keyspaces = kkeyspaces.flatMap(x => List(x.getName))    
+    val client = new thrift.Cassandra.Client(new TBinaryProtocol(socket))        
+    val keyspaces = client.describe_keyspaces.flatMap(x => List(x.getName)).filter { x => x != "system" }    
     if (keyspaces.isEmpty) {
       return List(seedHost)
     }
