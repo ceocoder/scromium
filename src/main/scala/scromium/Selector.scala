@@ -109,7 +109,16 @@ class SubColumnSelector(
 
 class SuperSliceSelector(
   rows : List[Array[Byte]], 
-  slice : Slice) extends SliceSelector(rows, slice) with SuperReadable with Deletable
+  slice : Slice) extends SuperReadable with Deletable {
+	
+	def toRead(cf : String) =
+    new Read(rows, cf, slice=Some(slice))
+    
+  def toDelete(cf : String, clock : Clock) =
+    new Delete(rows, cf, slice=Some(slice), clock=clock)
+	
+} 
+  
 
 class SubColumnSliceSelector(
   val rows : List[Array[Byte]], 
