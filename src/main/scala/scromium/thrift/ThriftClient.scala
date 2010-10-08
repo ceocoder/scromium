@@ -11,9 +11,9 @@ import scala.collection.mutable.ListBuffer
 import scala.collection.JavaConversions._
 import Thrift._
 
-class ThriftConnection(socket: TTransport, client: thrift.Cassandra.Client) extends ThriftClient(client) {
+class ThriftConnection(socket : TTransport, client : thrift.Cassandra.Client) extends ThriftClient(client) {
 
-  def isOpen(): Boolean = { socket.isOpen() }
+  def isOpen() : Boolean = { socket.isOpen() }
 
   def ensureOpen {
     if (!socket.isOpen) {
@@ -26,10 +26,10 @@ class ThriftConnection(socket: TTransport, client: thrift.Cassandra.Client) exte
   }
 }
 
-class ThriftClient(cass: thrift.Cassandra.Iface) extends Client with Log {
+class ThriftClient(cass : thrift.Cassandra.Iface) extends Client with Log {
   type MuteMap = JMap[String, JList[thrift.Mutation]]
 
-  def put(keyspace: String, writes: List[Write[Column]], c: WriteConsistency) {
+  def put(keyspace : String, writes : List[Write[Column]], c : WriteConsistency) {
     cass.set_keyspace(keyspace)
     val rowMap = createRowMap
     writes.foreach { write =>
@@ -40,7 +40,7 @@ class ThriftClient(cass: thrift.Cassandra.Iface) extends Client with Log {
     cass.batch_mutate(rowMap, c.thrift)
   }
 
-  def superPut(keyspace: String, writes: List[Write[SuperColumn]], c: WriteConsistency) {
+  def superPut(keyspace : String, writes : List[Write[SuperColumn]], c : WriteConsistency) {
     cass.set_keyspace(keyspace)
     val rowMap = createRowMap
     writes.foreach { write =>
@@ -51,7 +51,7 @@ class ThriftClient(cass: thrift.Cassandra.Iface) extends Client with Log {
     cass.batch_mutate(rowMap, c.thrift)
   }
 
-  def delete(keyspace: String, delete: Delete, c: WriteConsistency) {
+  def delete(keyspace : String, delete : Delete, c : WriteConsistency) {
     cass.set_keyspace(keyspace)
     val rowMap = createRowMap
     val mutation = deleteMutation(delete)
@@ -62,17 +62,17 @@ class ThriftClient(cass: thrift.Cassandra.Iface) extends Client with Log {
     cass.batch_mutate(rowMap, c.thrift)
   }
 
-  def getIndexed(keyspace: String, read: Read, c: ReadConsistency): RowIterator[Column] = {
+  def getIndexed(keyspace : String, read : Read, c : ReadConsistency) : RowIterator[Column] = {
     cass.set_keyspace(keyspace)
     val parent = readToColumnParent(read)
     val predicate = readToPredicate(read)
     val index = readToIndexClause(read)
     debug("get_indexed_slices(" + read.keys + "," + parent + "," + index + "," + predicate + "," + c.thrift + ")")
-    val results = Map(cass.get_indexed_slices(parent, index, predicate, c.thrift).map(a => { (a.key, a.columns) }): _*)
+    val results = Map(cass.get_indexed_slices(parent, index, predicate, c.thrift).map(a => { (a.key, a.columns) }) : _*)
     new MGColumnRowIterator(results)
   }
 
-  def get(keyspace: String, read: Read, c: ReadConsistency): RowIterator[Column] = {
+  def get(keyspace : String, read : Read, c : ReadConsistency) : RowIterator[Column] = {
     cass.set_keyspace(keyspace)
     val parent = readToColumnParent(read)
     val predicate = readToPredicate(read)
@@ -81,7 +81,7 @@ class ThriftClient(cass: thrift.Cassandra.Iface) extends Client with Log {
     new MGColumnRowIterator(results)
   }
 
-  def superGet(keyspace: String, read: Read, c: ReadConsistency): RowIterator[SuperColumn] = {
+  def superGet(keyspace : String, read : Read, c : ReadConsistency) : RowIterator[SuperColumn] = {
     cass.set_keyspace(keyspace)
     val parent = readToColumnParent(read)
     val predicate = readToPredicate(read)
@@ -90,37 +90,37 @@ class ThriftClient(cass: thrift.Cassandra.Iface) extends Client with Log {
     new MGSuperColumnRowIterator(results)
   }
 
-  def createKeyspace(keyspace: KeyspaceDef) {
+  def createKeyspace(keyspace : KeyspaceDef) {
     debug("system_add_keyspace(" + ksDef(keyspace) + ")")
     cass.system_add_keyspace(ksDef(keyspace))
   }
 
-  def createColumnFamily(cf: ColumnFamilyDef) {
+  def createColumnFamily(cf : ColumnFamilyDef) {
     debug("system_add_column_family(" + cfDef(cf) + ")")
     cass.system_add_column_family(cfDef(cf))
   }
 
-  def dropKeyspace(name: String) {
+  def dropKeyspace(name : String) {
     debug("system_drop_keyspace(" + name + ")")
     cass.system_drop_keyspace(name)
   }
 
-  def renameKeyspace(from: String, to: String) {
+  def renameKeyspace(from : String, to : String) {
     debug("system_rename_keyspace(" + from + "," + to + ")")
     cass.system_rename_keyspace(from, to)
   }
 
-  def dropColumnFamily(name: String) {
+  def dropColumnFamily(name : String) {
     debug("system_drop_column_family(" + name + ")")
     cass.system_drop_column_family(name)
   }
 
-  def renameColumnFamily(from: String, to: String) {
+  def renameColumnFamily(from : String, to : String) {
     debug("system_rename_column_family(" + from + "," + to + ")")
     cass.system_rename_column_family(from, to)
   }
 
-  def listKeyspaces: Set[String] = {
+  def listKeyspaces : Set[String] = {
     debug("describe_keyspaces()")
     cass.describe_keyspaces.flatMap(ks => List(ks.getName)).toSet
     //Set(cass.describe_keyspaces.toSeq : _*)
