@@ -39,11 +39,16 @@ class ColumnFamily(ksName : String,
     for (row <- results; column <- row.columns) return Some(column)
     return None
   }
+  
+  def getIndexed(selector : Readable, consistency : ReadConsistency = defaultR) : RowIterator[Column] = {
+	//provider.withClient(_.g
+	  null
+  }
     
   def get(selector : Readable, consistency : ReadConsistency = defaultR) : RowIterator[Column] = {
     provider.withClient(_.get(ksName, selector.toRead(cfName), consistency))
   }
-  
+
   def deleteColumn[R,C](row : R, column : C, clock : Clock = defaultClock, consistency : WriteConsistency = defaultW)
       (implicit rSer : Serializer[R], cSer : Serializer[C]) = {
     val selector = new Selector(List(rSer.serialize(row))).column(cSer.serialize(column))
