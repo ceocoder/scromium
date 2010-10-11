@@ -71,6 +71,16 @@ class ThriftClient(cass : thrift.Cassandra.Iface) extends Client with Log {
     new MGColumnRowIterator(results)
   }
   
+  def getIndexed(keyspace : String, read : Read, c : ReadConsistency) : RowIterator[Column] = {
+    cass.set_keyspace(keyspace)
+    val parent = readToColumnParent(read)
+    val predicate = readToPredicate(read)
+    val index = readToIndexClause(read)
+    debug("get_indexed_slices(" + read.keys + "," + parent + "," + index + "," + predicate + "," + c.thrift + ")")
+    val results = Map(cass.get_indexed_slices(parent, index, predicate, c.thrift).map(a => { (a.key, a.columns) }) : _*)
+    new MGColumnRowIterator(results)
+  }
+  
   def superGet(keyspace : String, read : Read, c : ReadConsistency) : RowIterator[SuperColumn] = {
     cass.set_keyspace(keyspace)
     val parent = readToColumnParent(read)
@@ -111,8 +121,8 @@ class ThriftClient(cass : thrift.Cassandra.Iface) extends Client with Log {
   }
   
   def listKeyspaces : Set[String] = {
-    debug("describe_keyspaces()")
-    Set(cass.describe_keyspaces.toSeq : _*)
+    debug("describe_keyspaces()")    
+    cass.describe_keyspaces.flatMap(ks => List(ks.getName)).toSet
   }
   
 /*  def scan(scanner : Scanner[Column], c : ReadConsistency) : RowIterator[Column]

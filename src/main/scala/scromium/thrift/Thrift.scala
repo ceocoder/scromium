@@ -1,5 +1,12 @@
 package scromium.thrift
 
+import scromium.LT
+import scromium.LTE
+import scromium.GT
+import scromium.EQ
+import scromium.GTE
+import scromium.Operator
+import scromium.Expression
 import scromium.client.{Delete, Read}
 import org.apache.cassandra.thrift._
 import scala.collection.JavaConversions._
@@ -7,7 +14,7 @@ import scromium.meta._
 
 object Thrift {
   def column(c : scromium.Column) : Column = {
-    val column = new Column(c.name, c.value, new Clock(c.timestamp))
+    val column = new Column(c.name, c.value, c.timestamp)
     for (ttl <- c.ttl) column.ttl = ttl
     column
   }
@@ -37,7 +44,7 @@ object Thrift {
       Some(c.ttl)
     else
       None
-    scromium.Column(c.name, c.value, c.clock.timestamp, ttl)
+    scromium.Column(c.name, c.value, c.timestamp, ttl)
   }
   
   def unpackSuperColumn(corsc : ColumnOrSuperColumn) : scromium.SuperColumn = {
@@ -82,6 +89,25 @@ object Thrift {
     predicate
   }
   
+  def indexClause(expressions : List[Expression]) : IndexClause = {
+    val clause = new IndexClause
+    expressions.foreach(exp => clause.addToExpressions(new IndexExpression(exp.columnName, getOperator(exp.op), exp.value)))
+    clause
+  }
+
+  private def getOperator(op : Operator) : IndexOperator = op match {
+    case EQ => IndexOperator.EQ
+    case GTE => IndexOperator.GTE
+    case GT => IndexOperator.GT
+    case LTE => IndexOperator.LTE
+    case LT => IndexOperator.LT
+  }
+
+  def indexClause : IndexClause = {
+    val clause = new IndexClause
+    clause
+  }
+  
   def deleteMutation(d : Delete) : Mutation = {
     val mutation = new Mutation
     mutation.deletion = deletion(d)
@@ -89,7 +115,7 @@ object Thrift {
   }
   
   def deletion(d : Delete) : Deletion = {
-    val deletion = new Deletion(new Clock(d.clock.timestamp))
+    val deletion = new Deletion(d.clock.timestamp)
     d match {
       case Delete(keys, cf, Some(List(column)), Some(subColumns), _, _) =>
         deletion.super_column = column
@@ -110,7 +136,7 @@ object Thrift {
   def readToColumnParent(r : Read) : ColumnParent = {
     val columnParent = new ColumnParent(r.columnFamily)
     r match {
-      case Read(_, _, Some(List(super_column)), Some(subc :: tail), _) =>
+      case Read(_, _, Some(List(super_column)), Some(subc :: tail), _, _) =>
         columnParent.super_column = super_column
       case _ =>
         Unit
@@ -119,14 +145,20 @@ object Thrift {
   }
   
   def readToPredicate(r : Read) : SlicePredicate = r match {
-    case Read(_, _, _, Some(subColumns), _) =>
+    case Read(_, _, _, Some(subColumns), _, _) =>
       slicePredicate(subColumns)
-    case Read(_, _, _, _, Some(slice)) =>
+    case Read(_, _, _, _, Some(slice), _) =>
       slicePredicate(slice)
-    case Read(_, _, Some(columns), _, _) =>
+    case Read(_, _, Some(columns), _, _, _) =>
       slicePredicate(columns)
     case _ =>
       slicePredicate
+  }
+  
+  def readToIndexClause(r : Read) : IndexClause = r match {
+    case Read(_, _, _, _, _, Some(indexExpressions)) =>
+      indexClause(indexExpressions)
+    case _ => indexClause
   }
   
   def ksDef(ks : KeyspaceDef) : KsDef = {
@@ -141,10 +173,8 @@ object Thrift {
   def cfDef(cf : ColumnFamilyDef) : CfDef = {
     val cfdef = new CfDef(cf.keyspace,cf.name)
     cfdef.column_type = cf.columnType
-    cfdef.clock_type = cf.clockType
     cfdef.comparator_type = cf.comparatorType
     cfdef.subcomparator_type = cf.subComparatorType
-    cfdef.reconciler = cf.reconciler
     cfdef.comment = cf.comment
     cfdef.row_cache_size = cf.rowCacheSize
     cfdef.preload_row_cache = cf.preloadRowCache

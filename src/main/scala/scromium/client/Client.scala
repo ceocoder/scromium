@@ -38,6 +38,7 @@ trait Client {
   def superPut(keyspace : String, rows : List[Write[SuperColumn]], c : WriteConsistency)
   def delete(keyspace : String, delete : Delete, c : WriteConsistency)
   def get(keyspace : String, read : Read, c : ReadConsistency) : RowIterator[Column]
+  def getIndexed(keyspace : String, read : Read, c : ReadConsistency) : RowIterator[Column] 
   def superGet(keyspace : String, read : Read, c : ReadConsistency) : RowIterator[SuperColumn]
   def createKeyspace(keyspace : KeyspaceDef)
   def createColumnFamily(cf : ColumnFamilyDef)
@@ -69,6 +70,11 @@ class JMXClient(cl : Client) extends Client {
   def get(keyspace : String, read : Read, c : ReadConsistency) : RowIterator[Column] = {
     getLoad.mark(read.keys.size)
     getTimer.time { cl.get(keyspace, read, c) }
+  }
+  
+  def getIndexed(keyspace : String, read : Read, c : ReadConsistency) : RowIterator[Column] = {
+	getLoad.mark(read.keys.size)
+    getTimer.time { cl.get(keyspace, read, c) }  
   }
   
   def superGet(keyspace : String, read : Read, c : ReadConsistency) : RowIterator[SuperColumn] = {
