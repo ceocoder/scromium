@@ -134,7 +134,7 @@ object Thrift {
       ks.strategyClass, 
       ks.replicationFactor, 
       ks.cfDefs.map(cfDef(_)))
-    for(options <- ks.strategyOptions) ksdef.strategy_options = options
+    //for(options <- ks.strategyOptions) ksdef.strategy_options = options    
     ksdef
   }
   
@@ -142,7 +142,10 @@ object Thrift {
     val cfdef = new CfDef(cf.keyspace,cf.name)
     cfdef.column_type = cf.columnType
     cfdef.comparator_type = cf.comparatorType
-    cfdef.subcomparator_type = cf.subComparatorType
+    if(cf.subComparatorType == null || cf.subComparatorType.isEmpty)
+    	cfdef.subcomparator_type = "BytesType" //cf.subComparatorType
+    else 
+    	cfdef.subcomparator_type = cf.subComparatorType
     cfdef.comment = cf.comment
     cfdef.row_cache_size = cf.rowCacheSize
     cfdef.preload_row_cache = cf.preloadRowCache

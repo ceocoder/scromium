@@ -9,7 +9,7 @@ import java.net.Socket
 class ThriftSocketFactory {    
 
     @throws(classOf[TTransportException])
-    def make(host: String, port: Int, framed: Boolean): TTransport = {
+    def make(host: String, port: Int, framed: Boolean): TTransport = {    	
         val addy = InetAddress.getByName(host)
         val socket = new Socket(addy, port)
         if(framed)

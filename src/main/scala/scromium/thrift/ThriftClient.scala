@@ -112,8 +112,7 @@ class ThriftClient(cass : thrift.Cassandra.Iface) extends Client with Log {
   
   def listKeyspaces : Set[String] = {
     debug("describe_keyspaces()")
-    cass.describe_keyspaces.flatMap(ks => List(ks.getName)).toSet
-    //Set(cass.describe_keyspaces.toSeq : _*)
+    cass.describe_keyspaces.flatMap(ks => List(ks.getName)).toSet    
   }
   
 /*  def scan(scanner : Scanner[Column], c : ReadConsistency) : RowIterator[Column]

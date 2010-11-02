@@ -56,7 +56,11 @@ class ThriftLiveConnectionSpec extends Specification with Mockito with TestHelpe
       for (table <- DatabaseDescriptor.getTables) {
           Table.open(table)
       }
-      StorageService.instance.initServer
+      try {
+    	  StorageService.instance.initServer
+      } catch {
+    	  case ne: Exception => println("hi")
+      }
       val listenPort = DatabaseDescriptor.getRpcPort
       var listenAddr = DatabaseDescriptor.getRpcAddress
       if (listenAddr == null) listenAddr = FBUtilities.getLocalAddress
@@ -79,7 +83,7 @@ class ThriftLiveConnectionSpec extends Specification with Mockito with TestHelpe
         "seedHost" -> "localhost",
         "seedPort" -> 9160,
         "maxIdle" -> 10,
-        "framed" -> true,
+        "framed" -> false,
         "initCapacity" -> 10
       ))
     } catch {

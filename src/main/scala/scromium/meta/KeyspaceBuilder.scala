@@ -1,7 +1,7 @@
 package scromium.meta
 
 class KeyspaceBuilder(val name : String) {
-  var strategyClass : String = "org.apache.cassandra.locator.RackUnawareStrategy"
+  var strategyClass : String = "org.apache.cassandra.locator.SimpleStrategy"
   var replicationFactor : Int = 3
   var strategyOptions : Option[Map[String, String]] = None
   var cfBuilders : List[ColumnFamilyBuilder] = Nil

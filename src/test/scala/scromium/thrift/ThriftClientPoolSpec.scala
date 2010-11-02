@@ -61,7 +61,7 @@ class ThriftClientPoolSpec extends Specification with Mockito {
       
       clusterDiscovery.hosts("10.10.10.10", 9160, false) returns List("127.0.0.1", "192.168.0.1")
       socket.isOpen returns true
-      socketFactory.make(anyString, anyInt, false) returns socket
+      socketFactory.make(anyString, anyInt, anyBoolean) returns socket
       
       val connPool = new ThriftClientPool(Map("seedHost" -> "10.10.10.10", "seedPort" -> 9160, "maxIdle" -> 10, "initCapacity" -> 10, "framed" -> false), socketFactory, clusterDiscovery)
       connPool.borrow
