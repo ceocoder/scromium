@@ -14,8 +14,7 @@ object ReadConsistency {
 abstract sealed class WriteConsistency(val thrift : ConsistencyLevel) {
 }
 
-object WriteConsistency {
-  case object Zero extends WriteConsistency(ConsistencyLevel.ZERO)
+object WriteConsistency {  
   case object One extends WriteConsistency(ConsistencyLevel.ONE)
   case object Any extends WriteConsistency(ConsistencyLevel.ANY)
   case object Quorum extends WriteConsistency(ConsistencyLevel.QUORUM)
