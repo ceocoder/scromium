@@ -8,7 +8,7 @@ cassandra thrift API.  Assuming you use SBT, pull scromium into your project thu
     val scromium = "scromium" %% "scromium" % "0.6.4" artifacts 
       Artifact("scromium-all_2.8.0", "all", "jar")
       
-Why the extra artifact?  We'll get to that.
+Why the extra artifact?  We'll get to that. 
 
 Features
 -----
