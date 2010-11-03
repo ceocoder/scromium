@@ -9,7 +9,7 @@ import scromium.client._
 import scromium.util.{DefaultHashMap, ArrayKeyedHashMap, Log}
 import org.apache.cassandra.thrift
 import org.apache.thrift.transport.{TTransport, TTransportException}
-import java.util.{Map => JMap, List => JList}
+import java.util.{Map => JMap, List => JList, HashMap => HMap}
 import scala.collection.mutable.ListBuffer
 import scala.collection.JavaConversions._
 import Thrift._
@@ -34,29 +34,29 @@ class ThriftClient(cass : thrift.Cassandra.Iface) extends Client with Log {
   
   def put(keyspace : String, writes : List[Write[Column]], c : WriteConsistency) {
     cass.set_keyspace(keyspace)
-    val rowMap = createRowMapb
+    val rowMap = createRowMap
     writes.foreach { write =>
       val mutes = rowMap(ByteBuffer.wrap(write.key))(write.cf)
-      mutes ++= write.columns.map(columnMutation(_))
+      mutes ++= write.columns.map(columnMutation(_))      
     }
-    debug("batch_mutate(" + rowMap + "," + c.thrift + ")")
+    debug("batch_mutate(" + keyspace + "," + c.thrift + ")")
     cass.batch_mutate(rowMap, c.thrift)
   }
   
   def superPut(keyspace : String, writes : List[Write[SuperColumn]], c : WriteConsistency) {
     cass.set_keyspace(keyspace)
-    val rowMap = createRowMapb
+    val rowMap = createRowMap
     writes.foreach { write =>
       val mutes = rowMap(ByteBuffer.wrap(write.key))(write.cf)
       mutes ++= write.columns.map(superColumnMutation(_))
     }
-    debug("batch_mutate(" + rowMap + "," + c.thrift + ")")
+    debug("batch_mutate(" + keyspace + "," + c.thrift + ")")
     cass.batch_mutate(rowMap, c.thrift)
   }
   
   def delete(keyspace : String, delete : Delete, c : WriteConsistency) {
     cass.set_keyspace(keyspace)
-    val rowMap = createRowMapb
+    val rowMap = createRowMap
     val mutation = deleteMutation(delete)
     delete.keys.foreach { key =>
       rowMap(ByteBuffer.wrap(key))(delete.cf) += mutation
@@ -124,10 +124,9 @@ class ThriftClient(cass : thrift.Cassandra.Iface) extends Client with Log {
     cass.describe_keyspaces.flatMap(ks => List(ks.getName)).toSet    
   }
   
-/*  def scan(scanner : Scanner[Column], c : ReadConsistency) : RowIterator[Column]
-  def superScan(scanner : Scanner[SuperColumn], c : ReadConsistency) : RowIterator[SuperColumn]*/
-  private def createRowMapb = new scala.collection.mutable.HashMap[ByteBuffer, MuteMap]
-  private def createRowMap = new ArrayKeyedHashMap[ByteBuffer, MuteMap]({ key =>
+  /*def scan(scanner : Scanner[Column], c : ReadConsistency) : RowIterator[Column]
+  def superScan(scanner : Scanner[SuperColumn], c : ReadConsistency) : RowIterator[SuperColumn]*/  
+  private def createRowMap = new DefaultHashMap[ByteBuffer, MuteMap]({ key =>
     new JMapWrapper(new DefaultHashMap[String, JList[thrift.Mutation]]({ cf =>
       new JListWrapper(new ListBuffer[thrift.Mutation])
     }))
