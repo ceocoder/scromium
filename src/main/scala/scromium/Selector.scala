@@ -1,5 +1,6 @@
 package scromium
 
+import java.nio.ByteBuffer
 import serializers._
 import client._
 
@@ -15,7 +16,7 @@ trait Deletable {
   def toDelete(cf : String, clock : Clock) : Delete
 }
 
-class Selector(val rows : List[Array[Byte]]) extends Readable with Deletable {
+class Selector(val rows : List[ByteBuffer]) extends Readable with Deletable {
   
   def column[C](column : C)(implicit ser : Serializer[C]) =
     new ColumnSelector(rows, List(ser.serialize(column)))
@@ -31,7 +32,7 @@ class Selector(val rows : List[Array[Byte]]) extends Readable with Deletable {
   def toDelete(cf : String, clock : Clock) = new Delete(rows, cf, clock=clock)
 }
 
-class SuperSelector(rows : List[Array[Byte]]) extends SuperReadable with Deletable {
+class SuperSelector(rows : List[ByteBuffer]) extends SuperReadable with Deletable {
   
   def superColumn[C](column : C)(implicit ser : Serializer[C]) =
     new SuperColumnSelector(rows, ser.serialize(column))
@@ -50,8 +51,8 @@ class SuperSelector(rows : List[Array[Byte]]) extends SuperReadable with Deletab
 //privatish
 
 class ColumnSelector(
-  val rows : List[Array[Byte]], 
-  val columns : List[Array[Byte]]) extends Readable with Deletable {
+  val rows : List[ByteBuffer], 
+  val columns : List[ByteBuffer]) extends Readable with Deletable {
   
   def toRead(cf : String) =
     new Read(rows, cf, Some(columns))
@@ -61,7 +62,7 @@ class ColumnSelector(
 }
 
 class SliceSelector(
-  val rows : List[Array[Byte]], 
+  val rows : List[ByteBuffer], 
   val slice : Slice) extends Readable with Deletable {
   
   def toRead(cf : String) =
@@ -72,8 +73,8 @@ class SliceSelector(
 }
 
 class SuperColumnSelector(
-  val rows : List[Array[Byte]], 
-  val column : Array[Byte]) extends SuperReadable with Deletable {
+  val rows : List[ByteBuffer], 
+  val column : ByteBuffer) extends SuperReadable with Deletable {
   
   def subColumn[C](subcolumn : C)(implicit ser : Serializer[C]) =
     new SubColumnSelector(rows, column, List(ser.serialize(subcolumn)))
@@ -92,13 +93,13 @@ class SuperColumnSelector(
 }
 
 class SuperColumnsSelector(
-  rows : List[Array[Byte]],
-  columns : List[Array[Byte]]) extends ColumnSelector(rows, columns) with SuperReadable with Deletable
+  rows : List[ByteBuffer],
+  columns : List[ByteBuffer]) extends ColumnSelector(rows, columns) with SuperReadable with Deletable
 
 class SubColumnSelector(
-  val rows : List[Array[Byte]], 
-  val column : Array[Byte], 
-  val subColumns : List[Array[Byte]]) extends Readable with Deletable {
+  val rows : List[ByteBuffer], 
+  val column : ByteBuffer, 
+  val subColumns : List[ByteBuffer]) extends Readable with Deletable {
   
   def toRead(cf : String) =
     new Read(rows, cf, Some(List(column)), subColumns = Some(subColumns))
@@ -108,7 +109,7 @@ class SubColumnSelector(
 }
 
 class SuperSliceSelector(
-  rows : List[Array[Byte]], 
+  rows : List[ByteBuffer], 
   slice : Slice) extends SuperReadable with Deletable {
 	
 	def toRead(cf : String) =
@@ -121,8 +122,8 @@ class SuperSliceSelector(
   
 
 class SubColumnSliceSelector(
-  val rows : List[Array[Byte]], 
-  val column : Array[Byte], 
+  val rows : List[ByteBuffer], 
+  val column : ByteBuffer, 
   val slice : Slice) extends Readable with Deletable {
   
   def toRead(cf : String) =

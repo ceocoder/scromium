@@ -1,7 +1,7 @@
 package scromium
 
 import serializers._
-import serializers.Serializers.ByteArraySerializer
+import serializers.Serializers.ByteBufferSerializer
 import client.ClientProvider
 import scromium.util.Log
 import clocks._

@@ -1,5 +1,6 @@
 package scromium
 
+import java.nio.ByteBuffer
 import serializers._
 
 object Slice {
@@ -7,4 +8,4 @@ object Slice {
     new Slice(cSer.serialize(start), cSer.serialize(end), reversed, limit)
 }
 
-class Slice(val start : Array[Byte], val end : Array[Byte], val reversed : Boolean, val limit : Option[Int])
+class Slice(val start : ByteBuffer, val end : ByteBuffer, val reversed : Boolean, val limit : Option[Int])

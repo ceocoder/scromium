@@ -1,14 +1,15 @@
 package scromium.thrift
 
+import scromium.util.Log
 import java.nio.ByteBuffer
 import scromium.client.{Delete, Read}
 import org.apache.cassandra.thrift._
 import scala.collection.JavaConversions._
 import scromium.meta._
 
-object Thrift {
-  def column(c : scromium.Column) : Column = {
-	val column = new Column(ByteBuffer.wrap(c.name), ByteBuffer.wrap(c.value), c.timestamp)
+object Thrift extends Log {
+  def column(c : scromium.Column) : Column = {	
+	val column = new Column(c.name, c.value, c.timestamp)
     for (ttl <- c.ttl) column.ttl = ttl
     column
   }
@@ -20,7 +21,7 @@ object Thrift {
   }
   
   def superColumn(sc : scromium.SuperColumn) : SuperColumn = {
-    new SuperColumn(ByteBuffer.wrap(sc.name), sc.columns.map(column(_)))
+    new SuperColumn(sc.name, sc.columns.map(column(_)))
   }
   
   def superColumnContainer(sc : scromium.SuperColumn) : ColumnOrSuperColumn = {
@@ -30,7 +31,7 @@ object Thrift {
   }
   
   def unpackColumn(corsc : ColumnOrSuperColumn) : scromium.Column = {
-    column(corsc.column)
+	 column(corsc.column)
   }
   
   def column(c : Column) : scromium.Column = {
@@ -38,7 +39,8 @@ object Thrift {
       Some(c.ttl)
     else
       None
-    scromium.Column(c.name.array, c.value.array, c.timestamp, ttl)
+    logger.debug(c)  
+    scromium.Column(c.name, c.value, c.timestamp, ttl)
   }
   
   def unpackSuperColumn(corsc : ColumnOrSuperColumn) : scromium.SuperColumn = {
@@ -48,7 +50,7 @@ object Thrift {
   
   def superColumn(sc : SuperColumn) : scromium.SuperColumn = {
 /*    println("sc " + sc)*/
-    scromium.SuperColumn(sc.name.array, sc.columns.map(column(_)).toList)
+    scromium.SuperColumn(sc.name, sc.columns.map(column(_)).toList)
   }
   
   def columnMutation(c : scromium.Column) : Mutation = {
@@ -63,15 +65,15 @@ object Thrift {
     mutation
   }
   
-  def slicePredicate(columns : List[Array[Byte]]) : SlicePredicate = {
+  def slicePredicate(columns : List[ByteBuffer]) : SlicePredicate = {
     val predicate = new SlicePredicate
-    predicate.column_names = columns.map(ByteBuffer.wrap(_))
+    predicate.column_names = columns
     predicate
   }
   
   def slicePredicate(slice : scromium.Slice) : SlicePredicate = {
     val predicate = new SlicePredicate
-    val sliceRange = new SliceRange(ByteBuffer.wrap(slice.start), ByteBuffer.wrap(slice.end), slice.reversed, slice.limit.get)
+    val sliceRange = new SliceRange(slice.start, slice.end, slice.reversed, slice.limit.get)
     predicate.slice_range = sliceRange
     predicate
   }
@@ -93,10 +95,10 @@ object Thrift {
     val deletion = new Deletion(d.clock.timestamp)
     d match {
       case Delete(keys, cf, Some(List(column)), Some(subColumns), _, _) =>
-        deletion.super_column = ByteBuffer.wrap(column)
+        deletion.super_column = column
         deletion.predicate = slicePredicate(subColumns)
       case Delete(keys, cf, Some(List(column)), None, Some(slice), _) =>
-        deletion.super_column = ByteBuffer.wrap(column)
+        deletion.super_column = column
         deletion.predicate = slicePredicate(slice)
       case Delete(keys, cf, Some(columns), None, None, _) =>
         deletion.predicate = slicePredicate(columns)
@@ -112,7 +114,7 @@ object Thrift {
     val columnParent = new ColumnParent(r.columnFamily)
     r match {
       case Read(_, _, Some(List(super_column)), Some(subc :: tail), _) =>
-        columnParent.super_column = ByteBuffer.wrap(super_column)
+        columnParent.super_column = super_column
       case _ =>
         Unit
     }

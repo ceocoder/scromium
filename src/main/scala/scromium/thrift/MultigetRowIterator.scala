@@ -18,7 +18,7 @@ abstract class MultigetRowIterator[C <: Columnar](map : JMap[ByteBuffer,JList[Co
     val entry = mapIterator.next
     val containers = entry.getValue
     val columns = containers.map(unpackColumn(_))
-    new MultigetRow(entry.getKey.array, columns.toList)
+    new MultigetRow(entry.getKey, columns.toList)
   }
   
   def unpackColumn(container : ColumnOrSuperColumn) : C

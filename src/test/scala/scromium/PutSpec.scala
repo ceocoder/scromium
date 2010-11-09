@@ -1,5 +1,6 @@
 package scromium
 
+import java.nio.ByteBuffer
 import serializers.Serializers._
 import scromium.client._
 import org.specs._
@@ -9,14 +10,14 @@ import org.mockito.Matchers._
 class PutSpec extends Specification with Mockito {
   val clock = mock[Clock]
   clock.timestamp returns 1
-  val row = ByteArray(1)
-  val column = ByteArray(2)
-  val value = ByteArray(3)
+  val row = ByteBuffer.wrap("1".getBytes)
+  val column = ByteBuffer.wrap("2".getBytes)
+  val value = ByteBuffer.wrap("3".getBytes)
   
-  val column2 = ByteArray(4)
-  val value2 = ByteArray(5)
+  val column2 = ByteBuffer.wrap("4".getBytes)
+  val value2 = ByteBuffer.wrap("5".getBytes)
   
-  val row2 = ByteArray(6)
+  val row2 = ByteBuffer.wrap("6".getBytes)
   
   "Put" should {
     "single column write" in {
@@ -52,8 +53,8 @@ class PutSpec extends Specification with Mockito {
   }
   
   "SuperPut" should {
-    val sc = ByteArray(7)
-    val sc2 = ByteArray(8)
+    val sc = ByteBuffer.wrap("7".getBytes)
+    val sc2 = ByteBuffer.wrap("8".getBytes)
     
     "single subcolumn write" in {
       val put = new SuperPut(clock)

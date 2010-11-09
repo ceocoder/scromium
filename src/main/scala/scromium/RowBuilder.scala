@@ -1,11 +1,12 @@
 package scromium
 
+import java.nio.ByteBuffer
 import serializers._
 import clocks._
 import client._
 import scala.collection.mutable.ArrayBuffer
 
-class RowBuilder(val key : Array[Byte], clock : Clock) {
+class RowBuilder(val key : ByteBuffer, clock : Clock) {
   val columns = new ArrayBuffer[Column]
   
   def apply[T](f : RowBuilder => T) = f(this)
@@ -20,7 +21,7 @@ class RowBuilder(val key : Array[Byte], clock : Clock) {
   def toWrite(cf : String) = new Write(key, cf, columns.toList)
 }
 
-class SuperRowBuilder(val key : Array[Byte], clock : Clock) {
+class SuperRowBuilder(val key : ByteBuffer, clock : Clock) {
   val superColumns = new ArrayBuffer[SuperColumnBuilder]
   
   def apply[T](f : SuperRowBuilder => T) = f(this)

@@ -1,5 +1,6 @@
 package scromium
 
+import java.nio.ByteBuffer
 import serializers._
 
 object Scanner {
@@ -7,7 +8,7 @@ object Scanner {
     new Scanner(ser.serialize(start), ser.serialize(end))
 }
 
-class Scanner(val startKey : Array[Byte], val endKey : Array[Byte]) {
+class Scanner(val startKey : ByteBuffer, val endKey : ByteBuffer) {
   var limit = 1000
   var fetchLimit = 100
   

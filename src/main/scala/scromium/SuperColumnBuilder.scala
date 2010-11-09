@@ -1,10 +1,11 @@
 package scromium
 
+import java.nio.ByteBuffer
 import serializers._
 import clocks._
 import scala.collection.mutable.ArrayBuffer
 
-class SuperColumnBuilder(val name : Array[Byte], clock : Clock) {
+class SuperColumnBuilder(val name : ByteBuffer, clock : Clock) {
   val columns = new ArrayBuffer[Column]
   
   def insert[C,V](column : C, value : V, timestamp : Long = clock.timestamp, ttl : Option[Int] = None)
