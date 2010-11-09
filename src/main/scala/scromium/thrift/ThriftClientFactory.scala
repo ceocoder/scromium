@@ -57,7 +57,7 @@ class ThriftClientFactory(var hosts : List[String],
           socket
         } catch {
           case ex : TTransportException =>
-            error("Error creating socket", ex)
+            logger.error("Error creating socket", ex)
             createSocket(tail)
         }
     }

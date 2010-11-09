@@ -1,12 +1,13 @@
 package scromium.thrift
 
+import scromium.util.Log
 import java.nio.ByteBuffer
 import scromium.client.{Delete, Read}
 import org.apache.cassandra.thrift._
 import scala.collection.JavaConversions._
 import scromium.meta._
 
-object Thrift {
+object Thrift extends Log {
   def column(c : scromium.Column) : Column = {
 	val column = new Column(ByteBuffer.wrap(c.name), ByteBuffer.wrap(c.value), c.timestamp)
     for (ttl <- c.ttl) column.ttl = ttl
@@ -38,7 +39,11 @@ object Thrift {
       Some(c.ttl)
     else
       None
-    scromium.Column(c.name.array, c.value.array, c.timestamp, ttl)
+    var name = new Array[Byte](c.name.remaining())
+    c.name.get(name, 0, name.length)
+    var value = new Array[Byte](c.value.remaining())
+    c.value.get(value, 0, value.length)
+    scromium.Column(name, value, c.timestamp, ttl)
   }
   
   def unpackSuperColumn(corsc : ColumnOrSuperColumn) : scromium.SuperColumn = {
@@ -48,7 +53,9 @@ object Thrift {
   
   def superColumn(sc : SuperColumn) : scromium.SuperColumn = {
 /*    println("sc " + sc)*/
-    scromium.SuperColumn(sc.name.array, sc.columns.map(column(_)).toList)
+	var name = new Array[Byte](sc.name.remaining())
+    sc.name.get(name, 0, name.length)
+    scromium.SuperColumn(name, sc.columns.map(column(_)).toList)
   }
   
   def columnMutation(c : scromium.Column) : Mutation = {

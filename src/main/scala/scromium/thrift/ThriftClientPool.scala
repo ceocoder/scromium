@@ -28,7 +28,7 @@ class ThriftClientPool(config : Map[String,Any],
         }
       } catch {
         case e : Throwable =>
-          error("Caught exception trying to update the endpoint list.", e)
+          logger.error("Caught exception trying to update the endpoint list.", e)
       }
     }
   }

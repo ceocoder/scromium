@@ -39,7 +39,7 @@ class ThriftClient(cass : thrift.Cassandra.Iface) extends Client with Log {
       val mutes = rowMap(ByteBuffer.wrap(write.key))(write.cf)
       mutes ++= write.columns.map(columnMutation(_))      
     }
-    debug("batch_mutate(" + keyspace + "," + c.thrift + ")")
+    logger.debug("batch_mutate(" + keyspace + "," + c.thrift + ")")
     cass.batch_mutate(rowMap, c.thrift)
   }
   
@@ -50,7 +50,7 @@ class ThriftClient(cass : thrift.Cassandra.Iface) extends Client with Log {
       val mutes = rowMap(ByteBuffer.wrap(write.key))(write.cf)
       mutes ++= write.columns.map(superColumnMutation(_))
     }
-    debug("batch_mutate(" + keyspace + "," + c.thrift + ")")
+    logger.debug("batch_mutate(" + keyspace + "," + c.thrift + ")")
     cass.batch_mutate(rowMap, c.thrift)
   }
   
@@ -61,7 +61,7 @@ class ThriftClient(cass : thrift.Cassandra.Iface) extends Client with Log {
     delete.keys.foreach { key =>
       rowMap(ByteBuffer.wrap(key))(delete.cf) += mutation
     }
-    debug("batch_mutate(" + rowMap + "," + c.thrift + ")")
+    logger.debug("batch_mutate(" + rowMap + "," + c.thrift + ")")
     cass.batch_mutate(rowMap, c.thrift)
   }
   
@@ -69,7 +69,7 @@ class ThriftClient(cass : thrift.Cassandra.Iface) extends Client with Log {
     cass.set_keyspace(keyspace)
     val parent = readToColumnParent(read)
     val predicate = readToPredicate(read)
-    debug("multiget_slice(" + read.keys + "," + parent + "," + predicate + "," + c.thrift + ")")
+    logger.debug("multiget_slice(" + read.keys + "," + parent + "," + predicate + "," + c.thrift + ")")
     val results = cass.multiget_slice(read.keys.map(ByteBuffer.wrap(_)), parent, predicate, c.thrift)
     new MGColumnRowIterator(results)
   }
@@ -78,28 +78,28 @@ class ThriftClient(cass : thrift.Cassandra.Iface) extends Client with Log {
     cass.set_keyspace(keyspace)
     val parent = readToColumnParent(read)
     val predicate = readToPredicate(read)
-    debug("multiget_slice(" + read.keys + "," + parent + "," + predicate + "," + c.thrift + ")")
+    logger.debug("multiget_slice(" + read.keys + "," + parent + "," + predicate + "," + c.thrift + ")")
     val results = cass.multiget_slice(read.keys.map(ByteBuffer.wrap(_)), parent, predicate, c.thrift)
     new MGSuperColumnRowIterator(results)
   }
   
   def createKeyspace(keyspace : KeyspaceDef) {
-    debug("system_add_keyspace(" + ksDef(keyspace) + ")")
+    logger.debug("system_add_keyspace(" + ksDef(keyspace) + ")")
     cass.system_add_keyspace(ksDef(keyspace))
   }
   
   def createColumnFamily(cf : ColumnFamilyDef) {
-    debug("system_add_column_family(" + cfDef(cf) + ")")
+    logger.debug("system_add_column_family(" + cfDef(cf) + ")")
     cass.system_add_column_family(cfDef(cf))
   }
   
   def dropKeyspace(name : String) {
-    debug("system_drop_keyspace(" + name + ")")
+    logger.debug("system_drop_keyspace(" + name + ")")
     cass.system_drop_keyspace(name)
   }
   
   def renameKeyspace(from : String, to : String) {
-    debug("system_rename_keyspace(" + from + "," + to + ")")
+    logger.debug("system_rename_keyspace(" + from + "," + to + ")")
     cass.set_keyspace(from)
     val kDef = new KsDef
     kDef.name = to
@@ -107,12 +107,12 @@ class ThriftClient(cass : thrift.Cassandra.Iface) extends Client with Log {
   }
   
   def dropColumnFamily(name : String) {
-    debug("system_drop_column_family(" + name + ")")
+    logger.debug("system_drop_column_family(" + name + ")")
     cass.system_drop_column_family(name)
   }
   
   def renameColumnFamily(from : String, to : String) {
-    debug("system_rename_column_family(" + from + "," + to + ")")
+    logger.debug("system_rename_column_family(" + from + "," + to + ")")
     val cDef = new CfDef
     cDef.keyspace = ""
     cDef.name = to	
@@ -120,7 +120,7 @@ class ThriftClient(cass : thrift.Cassandra.Iface) extends Client with Log {
   }
   
   def listKeyspaces : Set[String] = {
-    debug("describe_keyspaces()")
+    logger.debug("describe_keyspaces()")
     cass.describe_keyspaces.flatMap(ks => List(ks.getName)).toSet    
   }
   

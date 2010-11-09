@@ -84,10 +84,10 @@ object Cassandra extends Log {
     try {
       if (file.isFile) {
         val json = readFile(file)
-        info("config " + json)
+        logger.info("config " + json)
         JSON.parseObject(json)
       } else {
-        info("config file " + file + " does not exist")
+        logger.info("config file " + file + " does not exist")
         default
       }
     } catch {

@@ -20,7 +20,7 @@ class WrappedProvider(objectPool : ThriftClientPool) extends ClientProvider with
       block(connection)
     } catch {
       case ex : Throwable =>
-        error("Error while trying to use connection", ex)
+        logger.error("Error while trying to use connection", ex)
         throw ex
     } finally {
       if (connection != null) objectPool.returnConnection(connection)
