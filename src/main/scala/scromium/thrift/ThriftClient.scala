@@ -73,10 +73,10 @@ class ThriftClient(cass : thrift.Cassandra.Iface) extends Client with Log {
     logger.debug("multiget_slice(" + read.keys + "," + parent + "," + predicate + "," + c.thrift + ")")
     val results = cass.multiget_slice(read.keys, parent, predicate, c.thrift)    
     for(x <- results) {
-    	logger.debug("Key " + new String(x._1.array))
+    	logger.debug("Key " + new String(x._1.array(),x._1.position()+x._1.arrayOffset(),x._1.remaining(),"UTF-8"));                    
     	for(y <- x._2){
-    		logger.debug("C Name " +new String(y.column.name.array))
-    		logger.debug("C Value " +new String(y.column.value.array))
+    		logger.debug("C Name " + y.column.name.getLong)
+    		logger.debug("C Value " +new String(y.column.value.array(),y.column.value.position()+y.column.value.arrayOffset(),y.column.value.remaining(),"UTF-8"))
     	}
     }
     new MGColumnRowIterator(results) 
