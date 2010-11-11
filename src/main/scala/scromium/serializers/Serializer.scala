@@ -1,6 +1,43 @@
 package scromium.serializers
 
+import java.nio.ByteBuffer
+import java.io.{ByteArrayOutputStream, ObjectOutputStream, ByteArrayInputStream, ObjectInputStream}
+
 object Serializers {
+	implicit object MapSerializer extends Serializer[Map[String, String]] with Deserializer[Map[String, String]] {
+    def serialize(map : Map[String, String]) = {
+      val baos = new ByteArrayOutputStream(1024)
+      val o = new ObjectOutputStream(baos)
+      o.writeObject(map)
+      baos.toByteArray
+    }
+    
+    def deserialize(ary : Array[Byte]) : Option[Map[String, String]] = {
+      val bis = new ByteArrayInputStream(ary.array)
+      val ois = new ObjectInputStream(bis)
+      val obj = ois.readObject
+      ois.close()
+      Some(obj.asInstanceOf[Map[String, String]])
+    }
+  }
+
+  implicit object ListStringSerializer extends Serializer[List[String]] with Deserializer[List[String]] {
+    def serialize(address : List[String]) = {
+      val baos = new ByteArrayOutputStream(1024)
+      val o = new ObjectOutputStream(baos)
+      o.writeObject(address)
+      baos.toByteArray
+    }
+
+    def deserialize(ary : Array[Byte]) : Option[List[String]] = {
+      val bis = new ByteArrayInputStream(ary.array)
+      val ois = new ObjectInputStream(bis)
+      val obj = ois.readObject
+      ois.close()
+      Some(obj.asInstanceOf[List[String]])
+    }
+  }
+	
   implicit object StringSerializer extends Serializer[String] with Deserializer[String] {
     def serialize(str : String) = str.asInstanceOf[String].getBytes
     def deserialize(ary : Array[Byte]) = Some(new String(ary))
@@ -35,4 +72,15 @@ trait Serializer[-T] {
 
 trait Deserializer[+T] {
   def deserialize(ary : Array[Byte]) : Option[T]
+}
+
+trait BufferConverter {
+  implicit def byteBufferToByte(b : ByteBuffer) : Array[Byte] = {
+	  var ary = new Array[Byte](b.remaining)
+	  b.get(ary, 0, ary.length)
+	  ary
+  }
+    implicit def byteArrayToBuffer(ary : Array[Byte]) : ByteBuffer = {
+	  ByteBuffer.wrap(ary)
+  }
 }

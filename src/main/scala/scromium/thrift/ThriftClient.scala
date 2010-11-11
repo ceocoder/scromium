@@ -1,5 +1,6 @@
 package scromium.thrift
 
+import scromium.serializers.BufferConverter
 import org.apache.cassandra.thrift.CfDef
 import org.apache.cassandra.thrift.KsDef
 import java.nio.ByteBuffer
@@ -29,14 +30,14 @@ class ThriftConnection(socket : TTransport, client : thrift.Cassandra.Client) ex
   }
 }
 
-class ThriftClient(cass : thrift.Cassandra.Iface) extends Client with Log {
+class ThriftClient(cass : thrift.Cassandra.Iface) extends Client with Log with BufferConverter {
   type MuteMap = JMap[String, JList[thrift.Mutation]]
   
   def put(keyspace : String, writes : List[Write[Column]], c : WriteConsistency) {
     cass.set_keyspace(keyspace)
     val rowMap = createRowMap
     writes.foreach { write =>
-      val mutes = rowMap(ByteBuffer.wrap(write.key))(write.cf)
+      val mutes = rowMap(write.key)(write.cf)
       mutes ++= write.columns.map(columnMutation(_))      
     }
     logger.debug("batch_mutate(" + keyspace + "," + c.thrift + ")")
@@ -47,7 +48,7 @@ class ThriftClient(cass : thrift.Cassandra.Iface) extends Client with Log {
     cass.set_keyspace(keyspace)
     val rowMap = createRowMap
     writes.foreach { write =>
-      val mutes = rowMap(ByteBuffer.wrap(write.key))(write.cf)
+      val mutes = rowMap(write.key)(write.cf)
       mutes ++= write.columns.map(superColumnMutation(_))
     }
     logger.debug("batch_mutate(" + keyspace + "," + c.thrift + ")")
@@ -59,7 +60,7 @@ class ThriftClient(cass : thrift.Cassandra.Iface) extends Client with Log {
     val rowMap = createRowMap
     val mutation = deleteMutation(delete)
     delete.keys.foreach { key =>
-      rowMap(ByteBuffer.wrap(key))(delete.cf) += mutation
+      rowMap(key)(delete.cf) += mutation
     }
     logger.debug("batch_mutate(" + rowMap + "," + c.thrift + ")")
     cass.batch_mutate(rowMap, c.thrift)

@@ -1,5 +1,6 @@
 package scromium.thrift
 
+import scromium.serializers.BufferConverter
 import scromium.util.Log
 import java.nio.ByteBuffer
 import scromium.client.{Delete, Read}
@@ -7,9 +8,9 @@ import org.apache.cassandra.thrift._
 import scala.collection.JavaConversions._
 import scromium.meta._
 
-object Thrift extends Log {
+object Thrift extends Log with BufferConverter {
   def column(c : scromium.Column) : Column = {
-	val column = new Column(ByteBuffer.wrap(c.name), ByteBuffer.wrap(c.value), c.timestamp)
+	val column = new Column(c.name, c.value, c.timestamp)
     for (ttl <- c.ttl) column.ttl = ttl
     column
   }
@@ -21,7 +22,7 @@ object Thrift extends Log {
   }
   
   def superColumn(sc : scromium.SuperColumn) : SuperColumn = {
-    new SuperColumn(ByteBuffer.wrap(sc.name), sc.columns.map(column(_)))
+    new SuperColumn(sc.name, sc.columns.map(column(_)))
   }
   
   def superColumnContainer(sc : scromium.SuperColumn) : ColumnOrSuperColumn = {
@@ -39,11 +40,7 @@ object Thrift extends Log {
       Some(c.ttl)
     else
       None
-    var name = new Array[Byte](c.name.remaining())
-    c.name.get(name, 0, name.length)
-    var value = new Array[Byte](c.value.remaining())
-    c.value.get(value, 0, value.length)
-    scromium.Column(name, value, c.timestamp, ttl)
+    scromium.Column(c.name, c.value, c.timestamp, ttl)
   }
   
   def unpackSuperColumn(corsc : ColumnOrSuperColumn) : scromium.SuperColumn = {
@@ -53,9 +50,7 @@ object Thrift extends Log {
   
   def superColumn(sc : SuperColumn) : scromium.SuperColumn = {
 /*    println("sc " + sc)*/
-	var name = new Array[Byte](sc.name.remaining())
-    sc.name.get(name, 0, name.length)
-    scromium.SuperColumn(name, sc.columns.map(column(_)).toList)
+	scromium.SuperColumn(sc.name, sc.columns.map(column(_)).toList)
   }
   
   def columnMutation(c : scromium.Column) : Mutation = {
@@ -78,14 +73,14 @@ object Thrift extends Log {
   
   def slicePredicate(slice : scromium.Slice) : SlicePredicate = {
     val predicate = new SlicePredicate
-    val sliceRange = new SliceRange(ByteBuffer.wrap(slice.start), ByteBuffer.wrap(slice.end), slice.reversed, slice.limit.get)
+    val sliceRange = new SliceRange(slice.start, slice.end, slice.reversed, slice.limit.get)
     predicate.slice_range = sliceRange
     predicate
   }
   
   def slicePredicate : SlicePredicate = {
     val predicate = new SlicePredicate
-    val sliceRange = new SliceRange(ByteBuffer.wrap(Array[Byte]()), ByteBuffer.wrap(Array[Byte]()), false, 1000)
+    val sliceRange = new SliceRange(Array[Byte](), Array[Byte](), false, 1000)
     predicate.slice_range = sliceRange
     predicate
   }
@@ -100,10 +95,10 @@ object Thrift extends Log {
     val deletion = new Deletion(d.clock.timestamp)
     d match {
       case Delete(keys, cf, Some(List(column)), Some(subColumns), _, _) =>
-        deletion.super_column = ByteBuffer.wrap(column)
+        deletion.super_column = column
         deletion.predicate = slicePredicate(subColumns)
       case Delete(keys, cf, Some(List(column)), None, Some(slice), _) =>
-        deletion.super_column = ByteBuffer.wrap(column)
+        deletion.super_column = column
         deletion.predicate = slicePredicate(slice)
       case Delete(keys, cf, Some(columns), None, None, _) =>
         deletion.predicate = slicePredicate(columns)
@@ -119,7 +114,7 @@ object Thrift extends Log {
     val columnParent = new ColumnParent(r.columnFamily)
     r match {
       case Read(_, _, Some(List(super_column)), Some(subc :: tail), _) =>
-        columnParent.super_column = ByteBuffer.wrap(super_column)
+        columnParent.super_column = super_column
       case _ =>
         Unit
     }
