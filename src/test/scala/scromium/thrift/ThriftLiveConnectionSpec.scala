@@ -97,7 +97,7 @@ class ThriftLiveConnectionSpec extends Specification with Mockito with TestHelpe
   
   def teardownCassandraThrift {
     server.stop
-    MessagingService.shutdown()
+    MessagingService.instance.shutdown()
     for (table <- DatabaseDescriptor.getTables) {
         Table.clear(table)
     }

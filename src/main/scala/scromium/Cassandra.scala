@@ -118,7 +118,7 @@ class Cassandra(provider : ClientProvider) {
 
   def teardownTest() {
 
-    MessagingService.shutdown()
+    MessagingService.instance.shutdown()
     for (table <- DatabaseDescriptor.getTables) {
       Table.clear(table)
     }

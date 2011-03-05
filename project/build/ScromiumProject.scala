@@ -18,13 +18,14 @@ class ScromiumProject(info : ProjectInfo) extends DefaultProject(info) with Basi
   val jetlangRepo = "Jet Lang Repository" at "http://jetlang.googlecode.com/svn/repo/"
   val nexus = "nexus" at "http://nexus.scala-tools.org/content/repositories/snapshots/"
   
+  val cassall = "org.apache.cassandra" % "cassandra-all" % "0.7.2"
   val metrics = "com.yammer" %% "metrics" % "1.0.7"
   val guild = "com.codahale" %% "guild" % "0.1.1"
   val jetlang = "org.jetlang" % "jetlang" % "0.2.0" withSources()
   val pool = "commons-pool" % "commons-pool" % "1.5.4" withSources() intransitive()
   val codec = "commons-codec" % "commons-codec" % "1.4"
-  val slf4japi = "org.slf4j" % "slf4j-api" % "1.5.11" withSources() intransitive()
-  val slf4j = "org.slf4j" % "slf4j-log4j12" % "1.5.11" withSources()
+  //val slf4japi = "org.slf4j" % "slf4j-api" % "1.5.11" withSources() intransitive()
+  //val slf4j = "org.slf4j" % "slf4j-log4j12" % "1.5.11" withSources()
   //cassandra deps
   val collections = "com.google.collections" % "google-collections" % "1.0"
   val cc = "commons-collections" % "commons-collections" % "3.2.1"
